@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b0b0f;
+  --foreground: #ededed;
+  --accent: #e50914;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-geist-sans);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.input {
+  @apply w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 outline-none focus:border-white/40;
+}
+
+.btn {
+  @apply rounded-md bg-accent px-4 py-2 font-semibold text-white hover:opacity-90 disabled:opacity-50;
+}
