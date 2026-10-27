@@ -1,79 +1,134 @@
-import { useEventListener } from 'expo';
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View, type ListViewToken } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { hlsUrl } from '@/lib/stream';
-import { supabase } from '@/lib/supabase';
-import { useSession } from '@/lib/useSession';
-
-const SAVE_EVERY_SECONDS = 10;
+import { Player } from '@/components/Player';
+import { thumbnailUrl } from '@/lib/stream';
+import type { Episode } from '@/lib/types';
+import { loadWatchContext, type WatchContext } from '@/lib/watchContext';
 
 export default function WatchScreen() {
-  const { uid, t } = useLocalSearchParams<{ uid: string; t?: string }>();
-  const session = useSession();
-  const userId = session?.user.id;
-  const [error, setError] = useState<string | null>(null);
-  const lastSaved = useRef(0);
+  const { uid } = useLocalSearchParams<{ uid: string }>();
+  const [context, setContext] = useState<WatchContext | null | undefined>(undefined);
 
-  const player = useVideoPlayer(hlsUrl(uid), (p) => {
-    p.timeUpdateEventInterval = 1;
-    p.play();
-  });
-
-  // Kaldığın yerden devam et
   useEffect(() => {
-    if (!userId) return;
-    supabase
-      .from('watch_progress')
-      .select('position_seconds')
-      .eq('video_uid', uid)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!data) return;
-        if (!player.duration || data.position_seconds < player.duration - 30) {
-          player.currentTime = data.position_seconds;
-        }
-      });
-  }, [uid, userId, player]);
-
-  function save(position: number) {
-    if (!userId) return;
-    lastSaved.current = position;
-    supabase
-      .from('watch_progress')
-      .upsert({
-        user_id: userId,
-        video_uid: uid,
-        position_seconds: position,
-        duration_seconds: player.duration || null,
-        updated_at: new Date().toISOString(),
-      })
-      .then();
-  }
-
-  useEventListener(player, 'timeUpdate', ({ currentTime }) => {
-    if (Math.abs(currentTime - lastSaved.current) >= SAVE_EVERY_SECONDS) save(currentTime);
-  });
-  useEventListener(player, 'playingChange', ({ isPlaying }) => {
-    if (!isPlaying) save(player.currentTime);
-  });
-  useEventListener(player, 'statusChange', ({ status }) => {
-    setError(status === 'error' ? 'Video henüz hazır değil ya da yüklenemedi. Biraz sonra tekrar dene.' : null);
-  });
+    loadWatchContext(uid).then(setContext);
+  }, [uid]);
 
   return (
-    <View style={styles.container}>
-      <Stack.Screen options={{ title: t ?? '' }} />
-      <VideoView player={player} style={styles.video} nativeControls fullscreenOptions={{ enable: true }} allowsPictureInPicture />
-      {error && <Text style={styles.error}>{error}</Text>}
+    <View style={styles.screen}>
+      <Stack.Screen options={{ headerShown: false }} />
+      {context === undefined ? null : context?.title.orientation === 'vertical' ? (
+        <VerticalFeed context={context} startUid={uid} />
+      ) : (
+        <HorizontalPlayer uid={uid} context={context} />
+      )}
     </View>
   );
 }
 
+function BackButton() {
+  const insets = useSafeAreaInsets();
+  return (
+    <Pressable onPress={() => router.back()} style={[styles.back, { top: insets.top + 8 }]} hitSlop={12}>
+      <Text style={styles.backText}>←</Text>
+    </Pressable>
+  );
+}
+
+function HorizontalPlayer({ uid, context }: { uid: string; context: WatchContext | null }) {
+  const index = context?.episodes.findIndex((e) => e.video_uid === uid) ?? -1;
+  const current = index >= 0 ? context!.episodes[index] : null;
+  const next = index >= 0 ? context!.episodes[index + 1] : undefined;
+  const goNext = () => next && router.replace({ pathname: '/watch/[uid]', params: { uid: next.video_uid } });
+
+  return (
+    <View style={styles.center}>
+      <BackButton />
+      <Player key={uid} videoUid={uid} onEnded={goNext} style={styles.horizontalVideo} />
+      <View style={styles.info}>
+        <Text style={styles.title}>{context?.title.name}</Text>
+        {current && (
+          <Text style={styles.subtitle}>
+            S{current.season}:B{current.number} {current.name ?? ''}
+          </Text>
+        )}
+        {next && (
+          <Pressable onPress={goNext} style={styles.nextButton}>
+            <Text style={styles.nextText}>Sonraki bölüm ▸</Text>
+          </Pressable>
+        )}
+      </View>
+    </View>
+  );
+}
+
+// Kısa video uygulamaları gibi: yukarı kaydırınca sonraki bölüm, bitince kendiliğinden geçer
+function VerticalFeed({ context, startUid }: { context: WatchContext; startUid: string }) {
+  const { height, width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const episodes: Pick<Episode, 'video_uid' | 'number'>[] = context.episodes.length
+    ? context.episodes
+    : [{ video_uid: startUid, number: 1 }];
+  const startIndex = Math.max(0, episodes.findIndex((e) => e.video_uid === startUid));
+  const [active, setActive] = useState(startIndex);
+  const list = useRef<FlatList>(null);
+
+  const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ListViewToken[] }) => {
+    const visible = viewableItems[0];
+    if (visible?.index != null) setActive(visible.index);
+  }, []);
+
+  const goTo = (index: number) => {
+    if (index < episodes.length) list.current?.scrollToIndex({ index, animated: true });
+  };
+
+  return (
+    <>
+      <FlatList
+        ref={list}
+        data={episodes}
+        keyExtractor={(e) => e.video_uid}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        initialScrollIndex={startIndex}
+        getItemLayout={(_, index) => ({ length: height, offset: height * index, index })}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
+        windowSize={3}
+        renderItem={({ item, index }) => (
+          <View style={{ height, width }}>
+            {index === active ? (
+              <Player videoUid={item.video_uid} onEnded={() => goTo(index + 1)} style={{ flex: 1 }} contentFit="cover" />
+            ) : (
+              <Image source={thumbnailUrl(item.video_uid)} style={{ flex: 1 }} contentFit="cover" />
+            )}
+            <View style={[styles.overlay, { bottom: insets.bottom + 72 }]} pointerEvents="none">
+              <Text style={styles.title}>{context.title.name}</Text>
+              <Text style={styles.subtitle}>
+                Bölüm {item.number} / {episodes.length}
+              </Text>
+            </View>
+          </View>
+        )}
+      />
+      <BackButton />
+    </>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', justifyContent: 'center' },
-  video: { width: '100%', aspectRatio: 16 / 9 },
-  error: { color: '#f87171', padding: 16, textAlign: 'center' },
+  screen: { flex: 1, backgroundColor: '#000' },
+  center: { flex: 1, justifyContent: 'center' },
+  horizontalVideo: { width: '100%', aspectRatio: 16 / 9 },
+  info: { padding: 16, gap: 6 },
+  title: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  subtitle: { color: 'rgba(255,255,255,0.8)' },
+  nextButton: { alignSelf: 'flex-start', backgroundColor: '#fff', borderRadius: 4, paddingHorizontal: 16, paddingVertical: 8, marginTop: 8 },
+  nextText: { color: '#000', fontWeight: '700' },
+  back: { position: 'absolute', left: 16, zIndex: 10 },
+  backText: { color: '#fff', fontSize: 30 },
+  overlay: { position: 'absolute', left: 16, right: 16 },
 });

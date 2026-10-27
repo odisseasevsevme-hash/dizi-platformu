@@ -27,7 +27,7 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto mt-10 max-w-sm space-y-4">
+    <form onSubmit={submit} className="mx-auto max-w-sm space-y-4 px-4 pt-28">
       <h1 className="text-2xl font-bold">{mode === "login" ? "Giriş yap" : "Kayıt ol"}</h1>
       <input className="input" type="email" placeholder="E-posta" value={email} onChange={(e) => setEmail(e.target.value)} required />
       <input className="input" type="password" placeholder="Şifre" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />

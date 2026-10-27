@@ -29,9 +29,9 @@ export default function RootLayout() {
               </Link>
             ),
         }}>
-        <Stack.Screen name="index" options={{ title: 'DİZİ' }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="title/[id]" options={{ title: '' }} />
-        <Stack.Screen name="watch/[uid]" options={{ title: '', headerRight: undefined }} />
+        <Stack.Screen name="watch/[uid]" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ title: 'Giriş', presentation: 'modal', headerRight: undefined }} />
       </Stack>
     </ThemeProvider>

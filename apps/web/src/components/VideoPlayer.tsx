@@ -8,7 +8,13 @@ import { useSession } from "@/lib/useSession";
 
 const SAVE_EVERY_SECONDS = 10;
 
-export function VideoPlayer({ videoUid }: { videoUid: string }) {
+type Props = {
+  videoUid: string;
+  onEnded?: () => void;
+  className?: string;
+};
+
+export function VideoPlayer({ videoUid, onEnded, className = "" }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { session } = useSession();
   const userId = session?.user.id;
@@ -77,16 +83,19 @@ export function VideoPlayer({ videoUid }: { videoUid: string }) {
   }, [videoUid, userId]);
 
   return (
-    <div>
+    <div className={`relative ${className}`}>
       <video
         ref={videoRef}
         controls
         autoPlay
         playsInline
-        className="aspect-video w-full rounded-md bg-black"
+        onEnded={onEnded}
+        className="h-full w-full bg-black object-contain"
         onError={() => setError("Video henüz hazır değil ya da yüklenemedi. Biraz sonra tekrar dene.")}
       />
-      {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+      {error && (
+        <p className="absolute inset-x-4 top-1/2 -translate-y-1/2 text-center text-sm text-red-400">{error}</p>
+      )}
     </div>
   );
 }

@@ -10,11 +10,11 @@ export default function AdminPage() {
   const { session, loading } = useSession();
   const isAdmin = useIsAdmin(session?.user.id);
 
-  if (loading || (session && isAdmin === null)) return <p className="opacity-60">Yükleniyor…</p>;
-  if (!session || !isAdmin) return <p>Bu sayfa sadece yönetici içindir.</p>;
+  if (loading || (session && isAdmin === null)) return <p className="px-4 pt-24 opacity-60 sm:px-12">Yükleniyor…</p>;
+  if (!session || !isAdmin) return <p className="px-4 pt-24 sm:px-12">Bu sayfa sadece yönetici içindir.</p>;
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-2">
+    <div className="mx-auto grid max-w-5xl gap-10 px-4 pb-16 pt-24 md:grid-cols-2">
       <NewTitleForm token={session.access_token} />
       <NewEpisodeForm token={session.access_token} />
     </div>
@@ -30,6 +30,7 @@ async function uploadPoster(file: File) {
 
 function NewTitleForm({ token }: { token: string }) {
   const [kind, setKind] = useState<"film" | "series">("series");
+  const [orientation, setOrientation] = useState<"horizontal" | "vertical">("horizontal");
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -49,6 +50,8 @@ function NewTitleForm({ token }: { token: string }) {
       }
       const { error } = await supabase.from("titles").insert({
         kind,
+        orientation,
+        featured: data.get("featured") === "on",
         name: data.get("name"),
         description: data.get("description") || null,
         year: data.get("year") ? Number(data.get("year")) : null,
@@ -80,12 +83,27 @@ function NewTitleForm({ token }: { token: string }) {
           </button>
         ))}
       </div>
+      <div className="flex gap-2">
+        {(["horizontal", "vertical"] as const).map((o) => (
+          <button
+            key={o}
+            type="button"
+            onClick={() => setOrientation(o)}
+            className={`rounded-full px-3 py-1 text-sm ${o === orientation ? "bg-white text-black" : "bg-white/10"}`}
+          >
+            {o === "horizontal" ? "▭ Yatay video" : "▯ Dikey video"}
+          </button>
+        ))}
+      </div>
       <input className="input" name="name" placeholder="Ad" required />
       <textarea className="input" name="description" placeholder="Açıklama" rows={3} />
       <input className="input" name="year" type="number" placeholder="Yıl" />
       <label className="block text-sm opacity-70">
-        Kapak görseli (isteğe bağlı)
+        Kapak görseli (isteğe bağlı, dikeyde 9:16 önerilir)
         <input className="input mt-1" name="poster" type="file" accept="image/*" />
+      </label>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="featured" /> Ana sayfadaki büyük afişte göster
       </label>
       {kind === "film" && (
         <label className="block text-sm opacity-70">

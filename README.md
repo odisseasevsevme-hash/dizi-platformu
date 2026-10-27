@@ -14,7 +14,7 @@ Videolar Bunny Stream'e doğrudan yüklenir, orada farklı kalitelere dönüşt�
 
 ### 1. Supabase
 1. [supabase.com](https://supabase.com) üzerinde yeni bir proje aç.
-2. SQL Editor'da `supabase/migrations/0001_init.sql` dosyasının içeriğini çalıştır.
+2. SQL Editor'da `supabase/migrations` klasöründeki dosyaları sırayla (0001, 0002, ...) çalıştır.
 3. Project Settings > API sayfasından **Project URL** ve **anon key** değerlerini al.
 
 ### 2. Bunny Stream
@@ -47,6 +47,13 @@ npm install
 npx expo start
 ```
 `expo-video` yerel kod içerdiği için Expo Go yerine geliştirme sürümü gerekir: `npx expo run:android` / `npx expo run:ios` ya da `npx eas-cli@latest build --profile development`.
+
+## İsim ve logo
+- Web: `apps/web/src/lib/brand.ts` içindeki `BRAND_NAME`. Logo için `apps/web/public/logo.png` ekleyip `LOGO_SRC` değerini `"/logo.png"` yap.
+- Mobil: `apps/mobile/src/lib/brand.ts` ve `apps/mobile/app.json` içindeki `name`.
+
+## Dikey ve yatay diziler
+Yükleme panelinde her film veya dizi için **Yatay video** ya da **Dikey video** seçilir. Dikey diziler ana sayfada ayrı bir satırda 9:16 kartlarla görünür ve kısa video uygulamaları gibi tam ekran oynatılır: yukarı kaydırınca sonraki bölüme geçilir, bölüm bitince kendiliğinden sıradakine geçer.
 
 ## Nasıl çalışır
 - Yönetici panelinden dosya seçildiğinde tarayıcı `/api/upload` adresine sorar. Sunucu yöneticiyi doğrular, Bunny'de bir video kaydı açar ve süreli bir yükleme imzası üretir. Dosya parça parça doğrudan Bunny'ye gider, bağlantı koparsa devam eder.

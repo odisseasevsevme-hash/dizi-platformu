@@ -6,7 +6,13 @@ export type Title = {
   year: number | null;
   poster_url: string | null;
   video_uid: string | null;
+  orientation: "horizontal" | "vertical";
+  featured: boolean;
   created_at: string;
+};
+
+export type TitleWithEpisodes = Title & {
+  episodes: Pick<Episode, "video_uid" | "season" | "number">[];
 };
 
 export type Episode = {
