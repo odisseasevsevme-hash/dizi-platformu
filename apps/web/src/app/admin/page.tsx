@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ContentManager } from "@/components/ContentManager";
 import { supabase } from "@/lib/supabase";
 import type { Title } from "@/lib/types";
 import { uploadVideo } from "@/lib/uploadVideo";
@@ -9,14 +10,20 @@ import { useIsAdmin, useSession } from "@/lib/useSession";
 export default function AdminPage() {
   const { session, loading } = useSession();
   const isAdmin = useIsAdmin(session?.user.id);
+  // Bir şey eklenip silindiğinde listeleri yenilemek için
+  const [version, setVersion] = useState(0);
+  const changed = () => setVersion((v) => v + 1);
 
   if (loading || (session && isAdmin === null)) return <p className="px-4 pt-24 opacity-60 sm:px-12">Yükleniyor…</p>;
   if (!session || !isAdmin) return <p className="px-4 pt-24 sm:px-12">Bu sayfa sadece yönetici içindir.</p>;
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-10 px-4 pb-16 pt-24 md:grid-cols-2">
-      <NewTitleForm token={session.access_token} />
-      <NewEpisodeForm token={session.access_token} />
+    <div className="mx-auto max-w-5xl space-y-14 px-4 pb-16 pt-24">
+      <div className="grid gap-10 md:grid-cols-2">
+        <NewTitleForm token={session.access_token} onSaved={changed} />
+        <NewEpisodeForm token={session.access_token} version={version} onSaved={changed} />
+      </div>
+      <ContentManager token={session.access_token} version={version} onChanged={changed} />
     </div>
   );
 }
@@ -28,7 +35,7 @@ async function uploadPoster(file: File) {
   return supabase.storage.from("posters").getPublicUrl(path).data.publicUrl;
 }
 
-function NewTitleForm({ token }: { token: string }) {
+function NewTitleForm({ token, onSaved }: { token: string; onSaved: () => void }) {
   const [kind, setKind] = useState<"film" | "series">("series");
   const [orientation, setOrientation] = useState<"horizontal" | "vertical">("horizontal");
   const [status, setStatus] = useState<string | null>(null);
@@ -60,6 +67,7 @@ function NewTitleForm({ token }: { token: string }) {
       });
       if (error) throw error;
       form.reset();
+      onSaved();
       setStatus(kind === "film" ? "Film eklendi. Bunny videoyu işledikten sonra izlenebilir." : "Dizi eklendi. Şimdi bölüm ekleyebilirsin.");
     } catch (err) {
       setStatus(`Hata: ${(err as Error).message}`);
@@ -117,7 +125,7 @@ function NewTitleForm({ token }: { token: string }) {
   );
 }
 
-function NewEpisodeForm({ token }: { token: string }) {
+function NewEpisodeForm({ token, version, onSaved }: { token: string; version: number; onSaved: () => void }) {
   const [series, setSeries] = useState<Title[]>([]);
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -129,7 +137,7 @@ function NewEpisodeForm({ token }: { token: string }) {
       .eq("kind", "series")
       .order("name")
       .then(({ data }) => setSeries(data ?? []));
-  }, [status]);
+  }, [version]);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -150,6 +158,7 @@ function NewEpisodeForm({ token }: { token: string }) {
       });
       if (error) throw error;
       form.reset();
+      onSaved();
       setStatus("Bölüm eklendi. Bunny videoyu işledikten sonra izlenebilir.");
     } catch (err) {
       setStatus(`Hata: ${(err as Error).message}`);

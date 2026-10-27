@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { createClient } from "@supabase/supabase-js";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 const UPLOAD_VALID_SECONDS = 24 * 60 * 60;
 
@@ -7,16 +7,8 @@ const UPLOAD_VALID_SECONDS = 24 * 60 * 60;
 // ve tarayıcının dosyayı doğrudan Bunny'ye yükleyebilmesi için imza üretir.
 // API anahtarı sunucuda kalır, dosyanın kendisi sunucumuzdan geçmez.
 export async function POST(request: Request) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer /, "");
-  if (!token) return new Response("Giriş gerekli", { status: 401 });
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { global: { headers: { Authorization: `Bearer ${token}` } } },
-  );
-  const { data: isAdmin, error } = await supabase.rpc("is_admin");
-  if (error || !isAdmin) return new Response("Yetkisiz", { status: 403 });
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
 
   const { title } = (await request.json()) as { title?: string };
   const libraryId = process.env.BUNNY_LIBRARY_ID!;
