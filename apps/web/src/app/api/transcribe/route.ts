@@ -16,15 +16,15 @@ export async function POST(request: Request) {
     return new Response("videoIds ve targetLanguages gerekli", { status: 400 });
   }
 
-  const failed: { id: string; message: string }[] = [];
+  // Bunny'nin her video için verdiği cevap, panelde gösterilir
+  const results: { id: string; ok: boolean; status: number; message: string }[] = [];
   for (const id of videoIds) {
     const response = await bunnyFetch(`/videos/${encodeURIComponent(id)}/transcribe${force ? "?force=true" : ""}`, {
       method: "POST",
       body: JSON.stringify({ sourceLanguage: sourceLanguage || null, targetLanguages }),
     });
-    if (!response.ok) failed.push({ id, message: await response.text() });
+    results.push({ id, ok: response.ok, status: response.status, message: (await response.text()).slice(0, 300) });
   }
 
-  if (failed.length) return Response.json({ failed }, { status: 502 });
-  return Response.json({ ok: true });
+  return Response.json({ results }, { status: results.every((r) => r.ok) ? 200 : 502 });
 }

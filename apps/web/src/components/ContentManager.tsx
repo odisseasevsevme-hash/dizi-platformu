@@ -7,7 +7,7 @@ import {
   SubtitlePicker,
 } from "@/components/admin/SubtitlePicker";
 import { TitleForm } from "@/components/admin/TitleForm";
-import { requestSubtitles } from "@/lib/adminApi";
+import { fetchCaptions, requestSubtitles } from "@/lib/adminApi";
 import { portraitImage } from "@/lib/catalog";
 import { deleteEpisode, deleteTitle } from "@/lib/deleteContent";
 import { supabase } from "@/lib/supabase";
@@ -29,13 +29,31 @@ export function ContentManager({ token, version, onChanged }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const [panel, setPanel] = useState<Panel>(null);
   const [subtitles, setSubtitles] = useState(NO_SUBTITLES);
+  // Altyazı panelinde: Bunny'de şu an hazır olan diller ve son isteğin cevabı
+  const [captionInfo, setCaptionInfo] = useState<string | null>(null);
 
   const isOpen = (kind: NonNullable<Panel>["kind"], id: string) =>
     panel?.kind === kind && panel.id === id;
-  const togglePanel = (kind: NonNullable<Panel>["kind"], id: string) => {
+  const togglePanel = (
+    kind: NonNullable<Panel>["kind"],
+    id: string,
+    videoId?: string,
+  ) => {
     setSubtitles(NO_SUBTITLES);
+    setCaptionInfo(null);
     setPanel(isOpen(kind, id) ? null : { kind, id });
+    if (videoId && !isOpen(kind, id)) checkCaptions(videoId);
   };
+
+  async function checkCaptions(videoId: string) {
+    setCaptionInfo("Kontrol ediliyor…");
+    const captions = await fetchCaptions(videoId);
+    setCaptionInfo(
+      captions.length
+        ? `Bunny'de hazır altyazılar: ${captions.map((c) => `${c.label} (${c.srclang})`).join(", ")}`
+        : "Bunny'de henüz hazır altyazı yok.",
+    );
+  }
   const saved = (text: string) => {
     setPanel(null);
     setMessage(text);
@@ -96,16 +114,33 @@ export function ContentManager({ token, version, onChanged }: Props) {
     run(
       id,
       async () => {
-        await requestSubtitles(videoIds, subtitles, token, { force: true });
-        setPanel(null);
+        const reply = await requestSubtitles(videoIds, subtitles, token, {
+          force: true,
+        });
+        setCaptionInfo(`Bunny'nin cevabı: ${reply}`);
       },
-      "Altyazı istendi. Bunny hazırlayınca (birkaç dakika) oynatıcıda görünür.",
+      "Altyazı istendi. Bunny hazırlayınca (birkaç dakika) oynatıcıda görünür. 🔄 ile kontrol edebilirsin.",
     );
   }
 
   function subtitlePanel(id: string, videoIds: string[]) {
     return (
       <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
+        {videoIds.length === 1 && (
+          <p className="flex items-center gap-2 text-sm text-white/80">
+            <button
+              type="button"
+              className="chip !px-2 !py-0.5 text-xs"
+              onClick={() => checkCaptions(videoIds[0])}
+            >
+              🔄
+            </button>
+            {captionInfo}
+          </p>
+        )}
+        {videoIds.length > 1 && captionInfo && (
+          <p className="text-sm text-white/80">{captionInfo}</p>
+        )}
         <SubtitlePicker value={subtitles} onChange={setSubtitles} />
         <div className="flex gap-2">
           <button
@@ -192,7 +227,13 @@ export function ContentManager({ token, version, onChanged }: Props) {
                 </button>
                 {title.kind === "film" && title.video_uid && (
                   <button
-                    onClick={() => togglePanel("subtitles", title.id)}
+                    onClick={() =>
+                      togglePanel(
+                        "subtitles",
+                        title.id,
+                        title.video_uid ?? undefined,
+                      )
+                    }
                     className="chip"
                   >
                     💬 Altyazı
@@ -268,7 +309,9 @@ export function ContentManager({ token, version, onChanged }: Props) {
                           ✏️
                         </button>
                         <button
-                          onClick={() => togglePanel("subtitles", e.id)}
+                          onClick={() =>
+                            togglePanel("subtitles", e.id, e.video_uid)
+                          }
                           className="chip !py-0.5 text-xs"
                         >
                           💬

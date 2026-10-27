@@ -73,7 +73,7 @@ export function VideoPlayer({ videoUid, onEnded, className = "", restart = false
 
   // Altyazı dilleri
   useEffect(() => {
-    fetch(`/api/captions/${videoUid}`)
+    fetch(`/api/captions/${videoUid}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : []))
       .then((list: Caption[]) => {
         setCaptions(list);

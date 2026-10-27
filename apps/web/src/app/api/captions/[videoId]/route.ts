@@ -4,5 +4,5 @@ import { getCaptions } from "@/lib/bunny";
 export async function GET(_request: Request, { params }: { params: Promise<{ videoId: string }> }) {
   const { videoId } = await params;
   const captions = await getCaptions(videoId);
-  return Response.json(captions, { headers: { "Cache-Control": "public, s-maxage=300" } });
+  return Response.json(captions, { headers: { "Cache-Control": "no-store" } });
 }

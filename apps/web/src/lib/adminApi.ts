@@ -34,11 +34,19 @@ export async function requestSubtitles(
   accessToken: string,
   { force = false }: { force?: boolean } = {},
 ) {
-  if (videoIds.length === 0 || request.targetLanguages.length === 0) return;
+  if (videoIds.length === 0 || request.targetLanguages.length === 0) return "";
   const response = await fetch("/api/transcribe", {
     method: "POST",
     headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
     body: JSON.stringify({ videoIds, ...request, force }),
   });
-  if (!response.ok) throw new Error(`Altyazı isteği gönderilemedi: ${await response.text()}`);
+  const text = await response.text();
+  if (!response.ok) throw new Error(`Altyazı isteği gönderilemedi: ${text}`);
+  return text;
+}
+
+// Bir videonun Bunny'de hazır olan altyazı dilleri
+export async function fetchCaptions(videoId: string): Promise<{ srclang: string; label: string }[]> {
+  const response = await fetch(`/api/captions/${encodeURIComponent(videoId)}`, { cache: "no-store" });
+  return response.ok ? response.json() : [];
 }
