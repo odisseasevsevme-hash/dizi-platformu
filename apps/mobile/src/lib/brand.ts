@@ -1,2 +1,2 @@
 // Platformun adı (web ile aynı tutun)
-export const BRAND_NAME = 'DİZİ';
+export const BRAND_NAME = 'MoviTime';

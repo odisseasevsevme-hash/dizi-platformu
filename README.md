@@ -1,4 +1,4 @@
-# Dizi Platformu
+# MoviTime
 
 Kendi film ve dizilerini yükleyip web ve mobilde izleyebileceğin platform.
 
