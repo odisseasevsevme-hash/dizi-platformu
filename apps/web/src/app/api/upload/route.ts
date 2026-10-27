@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { bunnyFetch } from "@/lib/bunny";
 import { requireAdmin } from "@/lib/requireAdmin";
 
 const UPLOAD_VALID_SECONDS = 24 * 60 * 60;
@@ -14,9 +15,8 @@ export async function POST(request: Request) {
   const libraryId = process.env.BUNNY_LIBRARY_ID!;
   const apiKey = process.env.BUNNY_STREAM_API_KEY!;
 
-  const bunnyResponse = await fetch(`https://video.bunnycdn.com/library/${libraryId}/videos`, {
+  const bunnyResponse = await bunnyFetch("/videos", {
     method: "POST",
-    headers: { Accept: "application/json", "Content-Type": "application/json", AccessKey: apiKey },
     body: JSON.stringify({ title: title || "Video" }),
   });
   if (!bunnyResponse.ok) {

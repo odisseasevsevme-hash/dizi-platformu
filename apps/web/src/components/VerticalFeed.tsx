@@ -15,7 +15,7 @@ export function VerticalFeed({ context, startUid }: { context: WatchContext; sta
     () =>
       context.episodes.length
         ? context.episodes
-        : [{ id: title.id, video_uid: startUid, season: 1, number: 1, name: null }],
+        : [{ id: title.id, video_uid: startUid, season: 1, number: 1, name: null, intro_start_seconds: null, intro_end_seconds: null }],
     [context.episodes, title.id, startUid],
   );
   const startIndex = Math.max(0, episodes.findIndex((e) => e.video_uid === startUid));

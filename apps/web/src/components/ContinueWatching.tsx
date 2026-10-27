@@ -1,48 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { Row } from "@/components/Row";
-import { watchHref } from "@/lib/catalog";
+import { resumeTarget, watchHref } from "@/lib/catalog";
 import { thumbnailUrl } from "@/lib/stream";
-import { supabase } from "@/lib/supabase";
 import type { TitleWithEpisodes, WatchProgress } from "@/lib/types";
-import { useSession } from "@/lib/useSession";
 
 type Item = WatchProgress & { title: TitleWithEpisodes; label: string };
 
-export function ContinueWatching({ titles }: { titles: TitleWithEpisodes[] }) {
-  const { session } = useSession();
-  const userId = session?.user.id;
-  const [progress, setProgress] = useState<WatchProgress[]>([]);
-
-  useEffect(() => {
-    if (!userId) return;
-    supabase
-      .from("watch_progress")
-      .select("video_uid, position_seconds, duration_seconds")
-      .order("updated_at", { ascending: false })
-      .limit(30)
-      .then(({ data }) => setProgress(data ?? []));
-  }, [userId]);
-
+export function ContinueWatching({ titles, progress }: { titles: TitleWithEpisodes[]; progress: WatchProgress[] }) {
   const items: Item[] = [];
   const seenTitles = new Set<string>();
   for (const p of progress) {
-    // Bitmiş videoları gösterme
-    if (p.duration_seconds && p.position_seconds > p.duration_seconds - 30) continue;
-    for (const title of titles) {
-      const episode = title.episodes.find((e) => e.video_uid === p.video_uid);
-      if (title.video_uid !== p.video_uid && !episode) continue;
-      // Her diziden sadece en son izlenen bölüm
-      if (seenTitles.has(title.id)) break;
-      seenTitles.add(title.id);
-      items.push({ ...p, title, label: episode ? `S${episode.season}:B${episode.number}` : "" });
-      break;
-    }
+    const title = titles.find((t) => t.video_uid === p.video_uid || t.episodes.some((e) => e.video_uid === p.video_uid));
+    if (!title || seenTitles.has(title.id)) continue;
+    seenTitles.add(title.id);
+    // Bölüm bittiyse sıradaki bölümü göster
+    const target = resumeTarget(title, progress);
+    if (!target?.resumed) continue;
+    const episode = title.episodes.find((e) => e.video_uid === target.videoUid);
+    const own = progress.find((x) => x.video_uid === target.videoUid);
+    items.push({
+      video_uid: target.videoUid,
+      position_seconds: own?.position_seconds ?? 0,
+      duration_seconds: own?.duration_seconds ?? null,
+      title,
+      label: episode ? `S${episode.season}:B${episode.number}` : "",
+    });
   }
 
-  if (!userId || items.length === 0) return null;
+  if (items.length === 0) return null;
 
   return (
     <Row heading="▶️ İzlemeye devam et">

@@ -3,10 +3,16 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { landscapeImage, portraitImage, watchHref } from "@/lib/catalog";
+import { MyListButton } from "@/components/MyListButton";
+import { TrailerBackground, TrailerModal } from "@/components/Trailer";
+import { landscapeImage, portraitImage, resumeTarget, sortedEpisodes, watchHref } from "@/lib/catalog";
 import { thumbnailUrl } from "@/lib/stream";
 import { supabase } from "@/lib/supabase";
-import type { Episode, TitleWithEpisodes } from "@/lib/types";
+import type { Episode, Title, WatchProgress } from "@/lib/types";
+import { useMyList } from "@/lib/useMyList";
+import { useProgress } from "@/lib/useProgress";
+
+const FADE = "[mask-image:linear-gradient(to_bottom,black_55%,transparent)]";
 
 export default function TitlePage() {
   return (
@@ -18,14 +24,17 @@ export default function TitlePage() {
 
 function TitleDetail() {
   const { id } = useParams<{ id: string }>();
-  const [title, setTitle] = useState<TitleWithEpisodes | null>(null);
+  const [title, setTitle] = useState<Title | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
-  const [season, setSeason] = useState(1);
+  const [season, setSeason] = useState<number | null>(null);
+  const [trailerOpen, setTrailerOpen] = useState(false);
+  const progress = useProgress();
+  const myList = useMyList();
 
   useEffect(() => {
     supabase
       .from("titles")
-      .select("*, episodes(video_uid, season, number)")
+      .select("*")
       .eq("id", id)
       .single()
       .then(({ data }) => setTitle(data));
@@ -33,49 +42,75 @@ function TitleDetail() {
       .from("episodes")
       .select("*")
       .eq("title_id", id)
-      .order("season")
-      .order("number")
-      .then(({ data }) => setEpisodes(data ?? []));
+      .then(({ data }) => setEpisodes(sortedEpisodes(data ?? [])));
   }, [id]);
 
   if (!title) return <div className="h-[60vh] animate-pulse bg-white/5" />;
 
+  const withEpisodes = { ...title, episodes };
   const vertical = title.orientation === "vertical";
+  const backdrop = vertical && !title.backdrop_url ? portraitImage(withEpisodes) : landscapeImage(withEpisodes);
+  const target = resumeTarget(withEpisodes, progress);
   const seasons = [...new Set(episodes.map((e) => e.season))];
-  const backdrop = vertical ? portraitImage(title) : landscapeImage(title);
-  const play = title.video_uid ?? episodes[0]?.video_uid;
-  const seasonEpisodes = episodes.filter((e) => e.season === season);
+  // Varsayılan sezon: devam edilecek bölümün sezonu
+  const currentSeason = season ?? episodes.find((e) => e.video_uid === target?.videoUid)?.season ?? seasons[0] ?? 1;
+  const seasonEpisodes = episodes.filter((e) => e.season === currentSeason);
+  const restartUid = title.video_uid ?? episodes[0]?.video_uid;
 
   return (
     <div className="pb-16">
-      <section className="relative h-[60vh] min-h-[420px] overflow-hidden">
+      <section className="relative h-[70vh] min-h-[480px] overflow-hidden">
         {backdrop && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={backdrop}
             alt=""
-            className={`absolute inset-0 h-full w-full object-cover [mask-image:linear-gradient(to_bottom,black_55%,transparent)] ${vertical ? "scale-110 blur-2xl brightness-50" : ""}`}
+            className={`absolute inset-0 h-full w-full object-cover ${FADE} ${vertical && !title.backdrop_url ? "scale-110 blur-2xl brightness-50" : ""}`}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/30 to-transparent [mask-image:linear-gradient(to_bottom,black_55%,transparent)]" />
-          <div className="absolute bottom-10 left-4 right-4 flex items-end gap-6 sm:left-12">
-          {vertical && backdrop && (
+        {title.trailer_uid && !trailerOpen && <TrailerBackground videoUid={title.trailer_uid} className={FADE} />}
+        <div className={`absolute inset-0 bg-gradient-to-r from-background/90 via-background/30 to-transparent ${FADE}`} />
+
+        <div className="absolute bottom-10 left-4 right-4 flex items-end gap-6 sm:left-12">
+          {title.poster_url && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={backdrop} alt="" className="hidden aspect-[9/16] w-40 -rotate-2 rounded-2xl object-cover shadow-2xl shadow-accent/40 ring-4 ring-white/20 sm:block" />
+            <img
+              src={title.poster_url}
+              alt=""
+              className={`hidden -rotate-2 rounded-2xl object-cover shadow-2xl shadow-accent/40 ring-4 ring-white/20 sm:block ${vertical ? "aspect-[9/16] w-40" : "aspect-[2/3] w-44"}`}
+            />
           )}
           <div className="max-w-xl space-y-3">
-            <h1 className="text-4xl font-black sm:text-5xl">{title.name}</h1>
-            <p className="text-sm text-white/70">
-              {vertical ? "Dikey dizi" : title.kind === "film" ? "Film" : "Dizi"}
-              {title.year ? ` · ${title.year}` : ""}
-              {title.kind === "series" ? ` · ${episodes.length} bölüm` : ""}
+            <h1 className="text-4xl font-black sm:text-6xl">{title.name}</h1>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-white/80">
+              <span>{vertical ? "📱 Dikey dizi" : title.kind === "film" ? "🎬 Film" : "🍿 Dizi"}</span>
+              {title.year && <span>· {title.year}</span>}
+              {title.kind === "series" && <span>· {episodes.length} bölüm</span>}
+              {(title.genres ?? []).map((g) => (
+                <span key={g} className="rounded-full bg-white/15 px-2 py-0.5 text-xs font-bold">
+                  {g}
+                </span>
+              ))}
             </p>
             {title.description && <p className="line-clamp-4 text-white/90">{title.description}</p>}
-            {play && (
-              <Link href={watchHref(play)} className="btn inline-flex items-center gap-2 !px-7 !py-3">
-                ▶ {title.kind === "film" ? "Oynat" : "1. bölümden başla"}
-              </Link>
-            )}
+            <div className="flex flex-wrap gap-3 pt-1">
+              {target && (
+                <Link href={watchHref(target.videoUid)} className="btn inline-flex items-center gap-2 !px-7 !py-3">
+                  ▶ {target.label}
+                </Link>
+              )}
+              {target?.resumed && restartUid && (
+                <Link href={watchHref(restartUid, { restart: true })} className="btn-ghost inline-flex items-center gap-2 !px-6 !py-3">
+                  ↺ Baştan başla
+                </Link>
+              )}
+              {title.trailer_uid && (
+                <button onClick={() => setTrailerOpen(true)} className="btn-ghost inline-flex items-center gap-2 !px-6 !py-3">
+                  🎬 Fragman
+                </button>
+              )}
+              <MyListButton active={myList.ids.includes(title.id)} onClick={() => myList.toggle(title.id)} />
+            </div>
           </div>
         </div>
       </section>
@@ -83,19 +118,18 @@ function TitleDetail() {
       {title.kind === "series" && (
         <section className="px-4 sm:px-12">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-2xl font-extrabold"><span className="bg-brand h-6 w-1.5 rounded-full" />Bölümler</h2>
+            <h2 className="flex items-center gap-2 text-2xl font-extrabold">
+              <span className="bg-brand h-6 w-1.5 rounded-full" />
+              Bölümler
+            </h2>
             {seasons.length > 1 && (
-              <select
-                value={season}
-                onChange={(e) => setSeason(Number(e.target.value))}
-                className="rounded-full border border-white/20 bg-surface px-4 py-1 font-semibold"
-              >
+              <div className="flex gap-2">
                 {seasons.map((s) => (
-                  <option key={s} value={s}>
+                  <button key={s} onClick={() => setSeason(s)} className={`chip ${s === currentSeason ? "chip-active" : ""}`}>
                     Sezon {s}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
             )}
           </div>
           {episodes.length === 0 && <p className="text-white/60">Henüz bölüm yok.</p>}
@@ -107,7 +141,8 @@ function TitleDetail() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={thumbnailUrl(e.video_uid)} alt="" loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
-                  <span className="bg-brand absolute bottom-2 left-2 flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-sm font-black">{e.number}</span>
+                  <span className="bg-brand absolute bottom-3 left-2 flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-sm font-black">{e.number}</span>
+                  <ProgressBar progress={progress} videoUid={e.video_uid} />
                 </Link>
               ))}
             </div>
@@ -115,14 +150,18 @@ function TitleDetail() {
             <ul className="space-y-1">
               {seasonEpisodes.map((e) => (
                 <li key={e.id}>
-                  <Link href={watchHref(e.video_uid)} className="group flex items-center gap-4 rounded-2xl py-3 transition hover:bg-white/5 sm:px-4">
+                  <Link
+                    href={watchHref(e.video_uid)}
+                    className={`group flex items-center gap-4 rounded-2xl py-3 transition hover:bg-white/5 sm:px-4 ${e.video_uid === target?.videoUid ? "bg-white/5" : ""}`}
+                  >
                     <span className="hidden w-8 text-3xl font-black text-white/30 transition group-hover:text-accent sm:block">{e.number}</span>
                     <div className="relative aspect-video w-36 shrink-0 overflow-hidden rounded-xl sm:w-44">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={thumbnailUrl(e.video_uid)} alt="" loading="lazy" className="h-full w-full object-cover" />
-                      <span className="absolute inset-0 m-auto flex h-10 w-10 items-center justify-center bg-brand rounded-full opacity-0 transition group-hover:opacity-100">
+                      <span className="bg-brand absolute inset-0 m-auto flex h-10 w-10 items-center justify-center rounded-full opacity-0 transition group-hover:opacity-100">
                         ▶
                       </span>
+                      <ProgressBar progress={progress} videoUid={e.video_uid} />
                     </div>
                     <div className="min-w-0">
                       <p className="font-semibold">{e.name ?? `Bölüm ${e.number}`}</p>
@@ -135,6 +174,19 @@ function TitleDetail() {
           )}
         </section>
       )}
+
+      {trailerOpen && title.trailer_uid && <TrailerModal videoUid={title.trailer_uid} onClose={() => setTrailerOpen(false)} />}
+    </div>
+  );
+}
+
+function ProgressBar({ progress, videoUid }: { progress: WatchProgress[]; videoUid: string }) {
+  const p = progress.find((x) => x.video_uid === videoUid);
+  if (!p?.duration_seconds) return null;
+  const percent = Math.min(100, (p.position_seconds / p.duration_seconds) * 100);
+  return (
+    <div className="absolute inset-x-0 bottom-0 h-1 bg-white/20">
+      <div className="bg-brand h-full" style={{ width: `${percent}%` }} />
     </div>
   );
 }

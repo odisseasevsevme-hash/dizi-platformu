@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { VerticalFeed } from "@/components/VerticalFeed";
 import { VideoPlayer } from "@/components/VideoPlayer";
@@ -18,6 +18,7 @@ export default function WatchPage() {
 
 function Watch() {
   const { uid } = useParams<{ uid: string }>();
+  const restart = useSearchParams().get("restart") === "1";
   const [context, setContext] = useState<WatchContext | null | undefined>(undefined);
 
   useEffect(() => {
@@ -26,10 +27,10 @@ function Watch() {
 
   if (context === undefined) return <div className="fixed inset-0 bg-black" />;
   if (context?.title.orientation === "vertical") return <VerticalFeed context={context} startUid={uid} />;
-  return <HorizontalPlayer uid={uid} context={context} />;
+  return <HorizontalPlayer uid={uid} context={context} restart={restart} />;
 }
 
-function HorizontalPlayer({ uid, context }: { uid: string; context: WatchContext | null }) {
+function HorizontalPlayer({ uid, context, restart }: { uid: string; context: WatchContext | null; restart: boolean }) {
   const router = useRouter();
   const [ended, setEnded] = useState(false);
   const index = context?.episodes.findIndex((e) => e.video_uid === uid) ?? -1;
@@ -46,7 +47,14 @@ function HorizontalPlayer({ uid, context }: { uid: string; context: WatchContext
 
   return (
     <div className="group fixed inset-0 bg-black">
-      <VideoPlayer key={uid} videoUid={uid} onEnded={() => setEnded(true)} className="h-full w-full" />
+      <VideoPlayer
+        key={uid}
+        videoUid={uid}
+        restart={restart}
+        intro={current ? { start: current.intro_start_seconds, end: current.intro_end_seconds } : undefined}
+        onEnded={() => setEnded(true)}
+        className="h-full w-full"
+      />
 
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-4 bg-gradient-to-b from-black/80 to-transparent p-4 opacity-0 transition group-hover:opacity-100">
         <Link href={back} className="pointer-events-auto text-3xl" aria-label="Geri">

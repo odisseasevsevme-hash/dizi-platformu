@@ -42,9 +42,13 @@ export function Header() {
           <Link href="/#dikey" className="chip">📱 Dikey</Link>
           <Link href="/#diziler" className="chip">🍿 Diziler</Link>
           <Link href="/#filmler" className="chip">🎬 Filmler</Link>
+          {session && <Link href="/#listem" className="chip">❤️ Listem</Link>}
         </nav>
       </div>
       <nav className="flex items-center gap-4 text-sm">
+        <Link href="/search" aria-label="Ara" className="text-xl transition hover:scale-110">
+          🔍
+        </Link>
         {isAdmin && (
           <Link href="/admin" className="btn-ghost !px-4 !py-1 text-sm">
             Yükle
