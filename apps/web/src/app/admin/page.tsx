@@ -57,7 +57,7 @@ function NewTitleForm({ token }: { token: string }) {
       });
       if (error) throw error;
       form.reset();
-      setStatus(kind === "film" ? "Film eklendi. Cloudflare videoyu işledikten sonra izlenebilir." : "Dizi eklendi. Şimdi bölüm ekleyebilirsin.");
+      setStatus(kind === "film" ? "Film eklendi. Bunny videoyu işledikten sonra izlenebilir." : "Dizi eklendi. Şimdi bölüm ekleyebilirsin.");
     } catch (err) {
       setStatus(`Hata: ${(err as Error).message}`);
     } finally {
@@ -132,7 +132,7 @@ function NewEpisodeForm({ token }: { token: string }) {
       });
       if (error) throw error;
       form.reset();
-      setStatus("Bölüm eklendi. Cloudflare videoyu işledikten sonra izlenebilir.");
+      setStatus("Bölüm eklendi. Bunny videoyu işledikten sonra izlenebilir.");
     } catch (err) {
       setStatus(`Hata: ${(err as Error).message}`);
     } finally {

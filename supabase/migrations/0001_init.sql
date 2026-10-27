@@ -43,7 +43,7 @@ create table public.titles (
   description text,
   year int,
   poster_url text,
-  -- Sadece filmler için: Cloudflare Stream video kimliği
+  -- Sadece filmler için: Bunny Stream video kimliği
   video_uid text,
   created_at timestamptz not null default now(),
   constraint film_has_no_episodes check (kind = 'film' or video_uid is null)

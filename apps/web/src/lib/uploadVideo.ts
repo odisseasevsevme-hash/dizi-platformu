@@ -2,36 +2,44 @@
 
 import * as tus from "tus-js-client";
 
-// Videoyu parça parça (tus) doğrudan Cloudflare Stream'e yükler.
+type UploadCredentials = {
+  videoId: string;
+  libraryId: string;
+  expirationTime: number;
+  signature: string;
+};
+
+// Videoyu parça parça (tus) doğrudan Bunny Stream'e yükler.
 // Büyük dosyalarda bağlantı koparsa kaldığı yerden devam eder.
-export function uploadVideo(
+export async function uploadVideo(
   file: File,
   accessToken: string,
   onProgress: (percent: number) => void,
 ): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let mediaId: string | null = null;
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ title: file.name }),
+  });
+  if (!response.ok) throw new Error(await response.text());
+  const { videoId, libraryId, expirationTime, signature } = (await response.json()) as UploadCredentials;
 
+  return new Promise((resolve, reject) => {
     const upload = new tus.Upload(file, {
-      endpoint: "/api/upload",
-      chunkSize: 50 * 1024 * 1024,
-      retryDelays: [0, 3000, 5000, 10000, 20000],
-      metadata: { name: file.name, filetype: file.type },
-      onBeforeRequest(req) {
-        // Yetki başlığı sadece bizim sunucumuza gider, Cloudflare'e gitmez
-        if (req.getMethod() === "POST") req.setHeader("Authorization", `Bearer ${accessToken}`);
+      endpoint: "https://video.bunnycdn.com/tusupload",
+      retryDelays: [0, 3000, 5000, 10000, 20000, 60000],
+      headers: {
+        AuthorizationSignature: signature,
+        AuthorizationExpire: String(expirationTime),
+        VideoId: videoId,
+        LibraryId: libraryId,
       },
-      onAfterResponse(_req, res) {
-        mediaId ??= res.getHeader("stream-media-id") ?? null;
-      },
+      metadata: { filetype: file.type, title: file.name },
       onProgress(sent, total) {
         onProgress(Math.round((sent / total) * 100));
       },
       onError: reject,
-      onSuccess() {
-        if (mediaId) resolve(mediaId);
-        else reject(new Error("Cloudflare video kimliği alınamadı"));
-      },
+      onSuccess: () => resolve(videoId),
     });
     upload.start();
   });

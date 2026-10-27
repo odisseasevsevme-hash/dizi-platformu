@@ -1,12 +1,12 @@
-// Cloudflare Stream adresleri (web ile aynı)
-const base = `https://customer-${process.env.EXPO_PUBLIC_CF_STREAM_CUSTOMER_CODE}.cloudflarestream.com`;
+// Bunny Stream adresleri (web ile aynı)
+const base = `https://${process.env.EXPO_PUBLIC_BUNNY_CDN_HOSTNAME}`;
 
-export function hlsUrl(videoUid: string) {
-  return `${base}/${videoUid}/manifest/video.m3u8`;
+export function hlsUrl(videoId: string) {
+  return `${base}/${videoId}/playlist.m3u8`;
 }
 
-export function thumbnailUrl(videoUid: string, time = '10s') {
-  return `${base}/${videoUid}/thumbnails/thumbnail.jpg?time=${time}&height=480`;
+export function thumbnailUrl(videoId: string) {
+  return `${base}/${videoId}/thumbnail.jpg`;
 }
 
 export function posterFor(title: { poster_url: string | null; video_uid: string | null }) {

@@ -1,13 +1,13 @@
-// Cloudflare Stream adresleri. Müşteri kodu Stream panelinde,
-// "customer-XXXX.cloudflarestream.com" şeklinde görünür.
-const base = `https://customer-${process.env.NEXT_PUBLIC_CF_STREAM_CUSTOMER_CODE}.cloudflarestream.com`;
+// Bunny Stream adresleri. Ana bilgisayar adı Stream kütüphanesinin
+// API sayfasında "CDN Hostname" olarak görünür (ör. vz-xxxx.b-cdn.net).
+const base = `https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}`;
 
-export function hlsUrl(videoUid: string) {
-  return `${base}/${videoUid}/manifest/video.m3u8`;
+export function hlsUrl(videoId: string) {
+  return `${base}/${videoId}/playlist.m3u8`;
 }
 
-export function thumbnailUrl(videoUid: string, time = "10s") {
-  return `${base}/${videoUid}/thumbnails/thumbnail.jpg?time=${time}&height=480`;
+export function thumbnailUrl(videoId: string) {
+  return `${base}/${videoId}/thumbnail.jpg`;
 }
 
 export function posterFor(title: { poster_url: string | null; video_uid: string | null }) {

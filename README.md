@@ -8,7 +8,7 @@ Kendi film ve dizilerini yükleyip web ve mobilde izleyebileceğin platform.
 | `apps/mobile` | Expo (React Native) uygulaması: iOS ve Android |
 | `supabase/migrations` | Veritabanı şeması, güvenlik kuralları ve kapak görseli deposu |
 
-Videolar Cloudflare Stream'e doğrudan yüklenir, orada farklı kalitelere dönüştürülür ve HLS ile oynatılır. Kullanıcılar, katalog ve "kaldığın yerden devam" kayıtları Supabase'de tutulur.
+Videolar Bunny Stream'e doğrudan yüklenir, orada farklı kalitelere dönüştürülür ve HLS ile oynatılır. Kullanıcılar, katalog ve "kaldığın yerden devam" kayıtları Supabase'de tutulur.
 
 ## Kurulum
 
@@ -17,10 +17,10 @@ Videolar Cloudflare Stream'e doğrudan yüklenir, orada farklı kalitelere dön�
 2. SQL Editor'da `supabase/migrations/0001_init.sql` dosyasının içeriğini çalıştır.
 3. Project Settings > API sayfasından **Project URL** ve **anon key** değerlerini al.
 
-### 2. Cloudflare Stream
-1. Cloudflare panelinde Stream'i etkinleştir.
-2. Stream sayfasındaki örnek adreslerde görünen `customer-XXXX` kodunu not et.
-3. My Profile > API Tokens'tan **Stream: Edit** izinli bir token oluştur ve hesap kimliğini (Account ID) al.
+### 2. Bunny Stream
+1. [bunny.net](https://bunny.net) üzerinde hesap aç.
+2. **Stream** > **Add Video Library** ile bir kütüphane oluştur (bölge: Avrupa).
+3. Kütüphanenin **API** sekmesinden **Video Library ID**, **CDN Hostname** (ör. `vz-xxxx.b-cdn.net`) ve **API Key** değerlerini al.
 
 ### 3. Web
 ```bash
@@ -49,12 +49,12 @@ npx expo start
 `expo-video` yerel kod içerdiği için Expo Go yerine geliştirme sürümü gerekir: `npx expo run:android` / `npx expo run:ios` ya da `npx eas-cli@latest build --profile development`.
 
 ## Nasıl çalışır
-- Yönetici panelinden dosya seçildiğinde tarayıcı `/api/upload` adresine sorar. Sunucu yöneticiyi doğrular ve Cloudflare'den tek kullanımlık bir yükleme adresi alır. Dosya parça parça doğrudan Cloudflare'e gider, bağlantı koparsa devam eder.
-- Cloudflare videoyu işledikten sonra (genelde birkaç dakika) web ve mobilde oynatılabilir.
+- Yönetici panelinden dosya seçildiğinde tarayıcı `/api/upload` adresine sorar. Sunucu yöneticiyi doğrular, Bunny'de bir video kaydı açar ve süreli bir yükleme imzası üretir. Dosya parça parça doğrudan Bunny'ye gider, bağlantı koparsa devam eder.
+- Bunny videoyu işledikten sonra (genelde birkaç dakika) web ve mobilde oynatılabilir.
 - Oynatıcı her 10 saniyede bir ve duraklatıldığında izleme konumunu kaydeder.
 
 ## Sonraki adımlar
-- Videoları sadece giriş yapanların izleyebilmesi için Cloudflare imzalı adresler
+- Videoları sadece giriş yapanların izleyebilmesi için Bunny token korumalı adresler
 - Altyazı yükleme
 - Arama ve türler
 - Mobilden yükleme
