@@ -6,10 +6,11 @@ export async function POST(request: Request) {
   const denied = await requireAdmin(request);
   if (denied) return denied;
 
-  const { videoIds, sourceLanguage, targetLanguages } = (await request.json()) as {
+  const { videoIds, sourceLanguage, targetLanguages, force } = (await request.json()) as {
     videoIds?: string[];
     sourceLanguage?: string;
     targetLanguages?: string[];
+    force?: boolean;
   };
   if (!Array.isArray(videoIds) || !Array.isArray(targetLanguages) || targetLanguages.length === 0) {
     return new Response("videoIds ve targetLanguages gerekli", { status: 400 });
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
 
   const failed: { id: string; message: string }[] = [];
   for (const id of videoIds) {
-    const response = await bunnyFetch(`/videos/${encodeURIComponent(id)}/transcribe`, {
+    const response = await bunnyFetch(`/videos/${encodeURIComponent(id)}/transcribe${force ? "?force=true" : ""}`, {
       method: "POST",
       body: JSON.stringify({ sourceLanguage: sourceLanguage || null, targetLanguages }),
     });

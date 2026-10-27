@@ -19,7 +19,7 @@ export function SubtitlePicker({ value, onChange }: Props) {
     <fieldset className="space-y-2 rounded-2xl border border-white/10 p-3">
       <legend className="px-1 text-sm font-semibold">💬 Otomatik altyazı (isteğe bağlı, ücretli)</legend>
       <label className="flex items-center gap-2 text-sm text-white/70">
-        Videodaki konuşma dili
+        1. Videoda hangi dil konuşuluyor?
         <select
           value={value.sourceLanguage}
           onChange={(e) => onChange({ ...value, sourceLanguage: e.target.value })}
@@ -32,6 +32,7 @@ export function SubtitlePicker({ value, onChange }: Props) {
           ))}
         </select>
       </label>
+      <p className="text-sm text-white/70">2. Hangi dillerde altyazı olsun? (birden fazla seçebilirsin)</p>
       <div className="flex flex-wrap gap-2">
         {LANGUAGES.map((l) => (
           <button

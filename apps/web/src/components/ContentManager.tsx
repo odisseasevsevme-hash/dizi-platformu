@@ -96,7 +96,7 @@ export function ContentManager({ token, version, onChanged }: Props) {
     run(
       id,
       async () => {
-        await requestSubtitles(videoIds, subtitles, token);
+        await requestSubtitles(videoIds, subtitles, token, { force: true });
         setPanel(null);
       },
       "Altyazı istendi. Bunny hazırlayınca (birkaç dakika) oynatıcıda görünür.",

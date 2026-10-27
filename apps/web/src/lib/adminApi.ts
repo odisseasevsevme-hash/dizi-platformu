@@ -27,12 +27,18 @@ export async function deleteVideos(videoIds: string[], accessToken: string) {
 export type SubtitleRequest = { sourceLanguage: string; targetLanguages: string[] };
 
 // Bunny'nin yapay zekâsıyla altyazı oluşturur (ücretli). Dil seçilmemişse bir şey yapmaz.
-export async function requestSubtitles(videoIds: string[], request: SubtitleRequest, accessToken: string) {
+// force: video daha önce (ör. Bunny'nin otomatik İngilizce altyazısıyla) işlendiyse yeniden işlet
+export async function requestSubtitles(
+  videoIds: string[],
+  request: SubtitleRequest,
+  accessToken: string,
+  { force = false }: { force?: boolean } = {},
+) {
   if (videoIds.length === 0 || request.targetLanguages.length === 0) return;
   const response = await fetch("/api/transcribe", {
     method: "POST",
     headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ videoIds, ...request }),
+    body: JSON.stringify({ videoIds, ...request, force }),
   });
   if (!response.ok) throw new Error(`Altyazı isteği gönderilemedi: ${await response.text()}`);
 }
