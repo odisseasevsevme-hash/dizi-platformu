@@ -57,8 +57,8 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, gap: 12 },
-  input: { borderWidth: 1, borderColor: '#333', borderRadius: 6, padding: 12, color: colors.text },
-  button: { backgroundColor: colors.accent, borderRadius: 6, padding: 12, alignItems: 'center' },
+  input: { borderWidth: 1, borderColor: '#3a2f6b', borderRadius: 12, padding: 12, color: colors.text },
+  button: { backgroundColor: colors.accent, borderRadius: 999, padding: 14, alignItems: 'center' },
   buttonText: { color: '#fff', fontWeight: '600' },
   text: { color: colors.text },
   muted: { color: colors.muted },

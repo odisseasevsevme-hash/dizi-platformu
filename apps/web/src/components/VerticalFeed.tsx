@@ -85,7 +85,7 @@ export function VerticalFeed({ context, startUid }: { context: WatchContext; sta
             <button
               onClick={() => goTo(index - 1)}
               disabled={index === 0}
-              className="h-12 w-12 rounded-full bg-white/15 text-xl hover:bg-white/25 disabled:opacity-30"
+              className="h-12 w-12 rounded-full bg-white/15 text-xl transition hover:scale-110 hover:bg-white/25 disabled:opacity-30"
               aria-label="Önceki bölüm"
             >
               ↑
@@ -93,7 +93,7 @@ export function VerticalFeed({ context, startUid }: { context: WatchContext; sta
             <button
               onClick={() => goTo(index + 1)}
               disabled={index === episodes.length - 1}
-              className="h-12 w-12 rounded-full bg-white/15 text-xl hover:bg-white/25 disabled:opacity-30"
+              className="bg-brand h-12 w-12 rounded-full text-xl shadow-lg shadow-accent/40 transition hover:scale-110 disabled:opacity-30"
               aria-label="Sonraki bölüm"
             >
               ↓

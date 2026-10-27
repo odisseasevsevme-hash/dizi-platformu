@@ -77,7 +77,7 @@ function NewTitleForm({ token }: { token: string }) {
             key={k}
             type="button"
             onClick={() => setKind(k)}
-            className={`rounded-full px-3 py-1 text-sm ${k === kind ? "bg-white text-black" : "bg-white/10"}`}
+            className={`chip ${k === kind ? "chip-active" : ""}`}
           >
             {k === "series" ? "Dizi" : "Film"}
           </button>
@@ -89,7 +89,7 @@ function NewTitleForm({ token }: { token: string }) {
             key={o}
             type="button"
             onClick={() => setOrientation(o)}
-            className={`rounded-full px-3 py-1 text-sm ${o === orientation ? "bg-white text-black" : "bg-white/10"}`}
+            className={`chip ${o === orientation ? "chip-active" : ""}`}
           >
             {o === "horizontal" ? "▭ Yatay video" : "▯ Dikey video"}
           </button>

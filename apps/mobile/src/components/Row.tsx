@@ -36,11 +36,11 @@ export function TitleCard({ title, shape }: { title: TitleWithEpisodes; shape: '
 
 const styles = StyleSheet.create({
   row: { gap: 8 },
-  heading: { color: colors.text, fontSize: 17, fontWeight: '700', paddingHorizontal: 16 },
+  heading: { color: colors.text, fontSize: 19, fontWeight: '800', paddingHorizontal: 16 },
   scroller: { gap: 8, paddingHorizontal: 16 },
-  card: { borderRadius: 6, overflow: 'hidden', backgroundColor: colors.card, justifyContent: 'flex-end' },
+  card: { borderRadius: 16, overflow: 'hidden', backgroundColor: colors.card, justifyContent: 'flex-end' },
   portrait: { width: 120, aspectRatio: 9 / 16 },
   landscape: { width: 220, aspectRatio: 16 / 9 },
-  shade: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.25)' },
-  cardText: { color: '#fff', fontWeight: '600', fontSize: 13, padding: 8 },
+  shade: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(16,10,38,0.3)' },
+  cardText: { color: '#fff', fontWeight: '800', fontSize: 13, padding: 10 },
 });

@@ -45,14 +45,14 @@ export function ContinueWatching({ titles }: { titles: TitleWithEpisodes[] }) {
   if (!userId || items.length === 0) return null;
 
   return (
-    <Row heading="İzlemeye devam et">
+    <Row heading="▶️ İzlemeye devam et">
       {items.map((item) => {
         const percent = item.duration_seconds ? (item.position_seconds / item.duration_seconds) * 100 : 0;
         return (
           <Link
             key={item.video_uid}
             href={watchHref(item.video_uid)}
-            className="group relative aspect-video w-56 shrink-0 snap-start overflow-hidden rounded-md bg-white/5 sm:w-72"
+            className="group relative aspect-video w-56 shrink-0 snap-start overflow-hidden rounded-2xl bg-surface ring-2 ring-transparent transition duration-300 hover:-translate-y-1 hover:ring-accent sm:w-72"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -64,14 +64,14 @@ export function ContinueWatching({ titles }: { titles: TitleWithEpisodes[] }) {
               }`}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent" />
-            <span className="absolute inset-0 m-auto flex h-12 w-12 items-center justify-center rounded-full border-2 border-white bg-black/50 text-xl opacity-0 transition group-hover:opacity-100">
+            <span className="absolute inset-0 m-auto flex h-12 w-12 items-center justify-center bg-brand rounded-full text-xl shadow-lg opacity-0 transition group-hover:opacity-100">
               ▶
             </span>
             <p className="absolute inset-x-2 bottom-3 truncate text-sm font-semibold">
               {item.title.name} {item.label && <span className="font-normal text-white/70">{item.label}</span>}
             </p>
-            <div className="absolute inset-x-0 bottom-0 h-1 bg-white/30">
-              <div className="h-full bg-accent" style={{ width: `${percent}%` }} />
+            <div className="absolute inset-x-0 bottom-0 h-1.5 bg-white/20">
+              <div className="bg-brand h-full rounded-full" style={{ width: `${percent}%` }} />
             </div>
           </Link>
         );

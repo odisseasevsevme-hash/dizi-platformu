@@ -37,17 +37,17 @@ export default function Home() {
       <div className="relative z-10 -mt-24 space-y-8 sm:space-y-10">
         <ContinueWatching titles={titles} />
         {vertical.length > 0 && (
-          <Row id="dikey" heading="Dikey Diziler">
+          <Row id="dikey" heading="📱 Dikey Diziler">
             {vertical.map((t) => <TitleCard key={t.id} title={t} shape="portrait" />)}
           </Row>
         )}
         {series.length > 0 && (
-          <Row id="diziler" heading="Diziler">
+          <Row id="diziler" heading="🍿 Diziler">
             {series.map((t) => <TitleCard key={t.id} title={t} shape="landscape" />)}
           </Row>
         )}
         {films.length > 0 && (
-          <Row id="filmler" heading="Filmler">
+          <Row id="filmler" heading="🎬 Filmler">
             {films.map((t) => <TitleCard key={t.id} title={t} shape="landscape" />)}
           </Row>
         )}

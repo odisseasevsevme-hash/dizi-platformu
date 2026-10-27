@@ -25,7 +25,7 @@ export function Header() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between px-4 transition-colors duration-300 sm:px-12 ${
-        scrolled ? "bg-background" : "bg-gradient-to-b from-black/80 to-transparent"
+        scrolled ? "bg-background/80 backdrop-blur-md" : "bg-gradient-to-b from-black/70 to-transparent"
       }`}
     >
       <div className="flex items-center gap-8">
@@ -37,16 +37,16 @@ export function Header() {
             BRAND_NAME
           )}
         </Link>
-        <nav className="hidden gap-5 text-sm sm:flex">
-          <Link href="/" className="hover:text-white/70">Ana Sayfa</Link>
-          <Link href="/#dikey" className="hover:text-white/70">Dikey Diziler</Link>
-          <Link href="/#diziler" className="hover:text-white/70">Diziler</Link>
-          <Link href="/#filmler" className="hover:text-white/70">Filmler</Link>
+        <nav className="hidden gap-2 sm:flex">
+          <Link href="/" className="chip">Ana Sayfa</Link>
+          <Link href="/#dikey" className="chip">📱 Dikey</Link>
+          <Link href="/#diziler" className="chip">🍿 Diziler</Link>
+          <Link href="/#filmler" className="chip">🎬 Filmler</Link>
         </nav>
       </div>
       <nav className="flex items-center gap-4 text-sm">
         {isAdmin && (
-          <Link href="/admin" className="rounded border border-white/40 px-3 py-1 hover:bg-white/10">
+          <Link href="/admin" className="btn-ghost !px-4 !py-1 text-sm">
             Yükle
           </Link>
         )}
@@ -55,7 +55,7 @@ export function Header() {
             Çıkış
           </button>
         ) : (
-          <Link href="/login" className="rounded bg-accent px-3 py-1 font-semibold text-white">
+          <Link href="/login" className="btn !px-4 !py-1 text-sm">
             Giriş
           </Link>
         )}

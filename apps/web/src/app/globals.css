@@ -1,34 +1,62 @@
 @import "tailwindcss";
 
 :root {
-  --background: #141414;
-  --foreground: #e5e5e5;
+  --background: #100a26;
+  --surface: #1d1442;
+  --foreground: #f4f1ff;
+  --blue: #2f6bff;
   --accent: #ec0166;
+  --sun: #ffc93c;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
+  --color-blue: var(--blue);
   --color-accent: var(--accent);
+  --color-sun: var(--sun);
   --font-sans: var(--font-geist-sans);
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
+  background:
+    radial-gradient(60rem 40rem at -10% 110%, rgb(47 107 255 / 0.22), transparent 60%),
+    radial-gradient(50rem 35rem at 110% 40%, rgb(236 1 102 / 0.18), transparent 60%),
+    var(--background);
+  background-attachment: fixed;
 }
 
-.input {
-  @apply w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 outline-none focus:border-white/40;
+@utility input {
+  @apply w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 outline-none focus:border-accent;
 }
 
-.btn {
-  @apply rounded-md bg-accent px-4 py-2 font-semibold text-white hover:opacity-90 disabled:opacity-50;
+/* Logodaki maviden pembeye geçiş */
+@utility bg-brand {
+  background-image: linear-gradient(100deg, var(--blue), var(--accent));
 }
 
-.no-scrollbar {
+@utility btn {
+  @apply bg-brand rounded-full px-5 py-2 font-bold text-white shadow-lg shadow-accent/30 transition hover:scale-105 hover:shadow-accent/50 disabled:opacity-50 disabled:hover:scale-100;
+}
+
+@utility btn-ghost {
+  @apply rounded-full bg-white/15 px-5 py-2 font-bold text-white backdrop-blur transition hover:scale-105 hover:bg-white/25;
+}
+
+@utility chip {
+  @apply rounded-full bg-white/10 px-4 py-1 text-sm font-semibold transition hover:bg-white/20;
+}
+
+@utility chip-active {
+  @apply bg-brand text-white;
+}
+
+@utility no-scrollbar {
   scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
+

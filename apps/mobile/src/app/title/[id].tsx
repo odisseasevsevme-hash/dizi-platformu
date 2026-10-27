@@ -61,7 +61,7 @@ export default function TitleScreen() {
           <ScrollView horizontal contentContainerStyle={{ gap: 8 }}>
             {seasons.map((s) => (
               <Pressable key={s} onPress={() => setSeason(s)} style={[styles.chip, s === season && styles.chipActive]}>
-                <Text style={{ color: s === season ? '#000' : colors.text }}>Sezon {s}</Text>
+                <Text style={{ color: colors.text, fontWeight: '700' }}>Sezon {s}</Text>
               </Pressable>
             ))}
           </ScrollView>
@@ -114,19 +114,30 @@ const styles = StyleSheet.create({
   verticalEpisode: {
     width: (Dimensions.get('window').width - 32 - 12) / 3,
     aspectRatio: 9 / 16,
-    borderRadius: 6,
+    borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: colors.card,
     justifyContent: 'flex-end',
   },
-  episodeNumber: { color: '#fff', fontWeight: '800', fontSize: 18, padding: 6 },
+  episodeNumber: {
+    color: '#fff',
+    fontWeight: '900',
+    fontSize: 14,
+    margin: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: colors.accent,
+    borderRadius: 999,
+    overflow: 'hidden',
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+  },
   name: { color: colors.text, fontSize: 24, fontWeight: '700' },
   text: { color: colors.text },
   muted: { color: colors.muted },
-  button: { backgroundColor: colors.accent, borderRadius: 6, padding: 12, alignItems: 'center' },
+  button: { backgroundColor: colors.accent, borderRadius: 999, padding: 14, alignItems: 'center' },
   buttonText: { color: '#fff', fontWeight: '600' },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: colors.card },
-  chipActive: { backgroundColor: '#fff' },
+  chipActive: { backgroundColor: colors.accent },
   episode: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  thumb: { width: 128, height: 72, borderRadius: 4, backgroundColor: colors.card },
+  thumb: { width: 128, height: 72, borderRadius: 10, backgroundColor: colors.card },
 });

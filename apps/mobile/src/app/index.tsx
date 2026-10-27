@@ -81,7 +81,7 @@ export default function Home() {
         {titles.length === 0 && <Text style={[styles.muted, { padding: 16 }]}>Henüz içerik yok.</Text>}
 
         {continueItems.length > 0 && (
-          <Row heading="İzlemeye devam et">
+          <Row heading="▶️ İzlemeye devam et">
             {continueItems.map((item) => (
               <Link key={item.video_uid} href={{ pathname: '/watch/[uid]', params: { uid: item.video_uid } }} asChild>
                 <Pressable style={styles.continueCard}>
@@ -98,17 +98,17 @@ export default function Home() {
           </Row>
         )}
         {vertical.length > 0 && (
-          <Row heading="Dikey Diziler">
+          <Row heading="📱 Dikey Diziler">
             {vertical.map((t) => <TitleCard key={t.id} title={t} shape="portrait" />)}
           </Row>
         )}
         {series.length > 0 && (
-          <Row heading="Diziler">
+          <Row heading="🍿 Diziler">
             {series.map((t) => <TitleCard key={t.id} title={t} shape="landscape" />)}
           </Row>
         )}
         {films.length > 0 && (
-          <Row heading="Filmler">
+          <Row heading="🎬 Filmler">
             {films.map((t) => <TitleCard key={t.id} title={t} shape="landscape" />)}
           </Row>
         )}
@@ -179,16 +179,16 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   logo: { width: 110, height: 24 },
-  login: { color: '#fff', backgroundColor: colors.accent, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 4, fontWeight: '600' },
+  login: { color: '#fff', backgroundColor: colors.accent, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 999, fontWeight: '700', overflow: 'hidden' },
   muted: { color: colors.muted },
-  heroShade: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.35)' },
+  heroShade: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(16,10,38,0.45)' },
   heroContent: { padding: 16, gap: 14, alignItems: 'center' },
   heroTitle: { color: '#fff', fontSize: 34, fontWeight: '900', textAlign: 'center' },
-  playButton: { backgroundColor: '#fff', borderRadius: 4, paddingHorizontal: 22, paddingVertical: 10 },
-  playText: { color: '#000', fontWeight: '700' },
-  infoButton: { backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: 4, paddingHorizontal: 22, paddingVertical: 10 },
+  playButton: { backgroundColor: colors.accent, borderRadius: 999, paddingHorizontal: 26, paddingVertical: 12 },
+  playText: { color: '#fff', fontWeight: '800' },
+  infoButton: { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 26, paddingVertical: 12 },
   infoText: { color: '#fff', fontWeight: '700' },
-  continueCard: { width: 220, aspectRatio: 16 / 9, borderRadius: 6, overflow: 'hidden', backgroundColor: colors.card, justifyContent: 'flex-end' },
+  continueCard: { width: 220, aspectRatio: 16 / 9, borderRadius: 16, overflow: 'hidden', backgroundColor: colors.card, justifyContent: 'flex-end' },
   continueText: { color: '#fff', fontWeight: '600', fontSize: 13, padding: 8, backgroundColor: 'rgba(0,0,0,0.4)' },
   progressTrack: { height: 3, backgroundColor: 'rgba(255,255,255,0.3)' },
   progressBar: { height: 3, backgroundColor: colors.accent },

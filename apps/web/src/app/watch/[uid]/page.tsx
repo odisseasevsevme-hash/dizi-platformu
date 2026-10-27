@@ -62,7 +62,7 @@ function HorizontalPlayer({ uid, context }: { uid: string; context: WatchContext
         <Link
           href={watchHref(next.video_uid)}
           replace
-          className={`absolute bottom-20 right-6 rounded bg-white px-5 py-2 font-bold text-black transition hover:bg-white/80 ${
+          className={`btn absolute bottom-20 right-6 ${
             ended ? "opacity-100" : "opacity-0 group-hover:opacity-100"
           }`}
         >
