@@ -50,3 +50,35 @@ export async function fetchCaptions(videoId: string): Promise<{ srclang: string;
   const response = await fetch(`/api/captions/${encodeURIComponent(videoId)}`, { cache: "no-store" });
   return response.ok ? response.json() : [];
 }
+
+// SRT dosyasını tarayıcıların anladığı WebVTT biçimine çevirir (zaten VTT ise dokunmaz)
+export function toVtt(text: string) {
+  const clean = text.replace(/^﻿/, "").replace(/\r\n?/g, "\n").trim();
+  if (clean.startsWith("WEBVTT")) return clean + "\n";
+  return `WEBVTT\n\n${clean.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2")}\n`;
+}
+
+export async function loadCaptionText(videoId: string, lang: string) {
+  const response = await fetch(`/api/captions/${encodeURIComponent(videoId)}/${encodeURIComponent(lang)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Altyazı dosyası alınamadı");
+  return response.text();
+}
+
+export async function saveCaption(videoId: string, lang: string, label: string, text: string, accessToken: string) {
+  const response = await fetch(`/api/captions/${encodeURIComponent(videoId)}/${encodeURIComponent(lang)}`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ label, text: toVtt(text) }),
+  });
+  if (!response.ok) throw new Error(`Altyazı kaydedilemedi: ${await response.text()}`);
+}
+
+export async function deleteCaption(videoId: string, lang: string, accessToken: string) {
+  const response = await fetch(`/api/captions/${encodeURIComponent(videoId)}/${encodeURIComponent(lang)}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!response.ok) throw new Error(`Altyazı silinemedi: ${await response.text()}`);
+}

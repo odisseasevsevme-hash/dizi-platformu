@@ -7,7 +7,8 @@ import {
   SubtitlePicker,
 } from "@/components/admin/SubtitlePicker";
 import { TitleForm } from "@/components/admin/TitleForm";
-import { fetchCaptions, requestSubtitles } from "@/lib/adminApi";
+import { CaptionEditor } from "@/components/admin/CaptionEditor";
+import { requestSubtitles } from "@/lib/adminApi";
 import { portraitImage } from "@/lib/catalog";
 import { deleteEpisode, deleteTitle } from "@/lib/deleteContent";
 import { supabase } from "@/lib/supabase";
@@ -34,26 +35,12 @@ export function ContentManager({ token, version, onChanged }: Props) {
 
   const isOpen = (kind: NonNullable<Panel>["kind"], id: string) =>
     panel?.kind === kind && panel.id === id;
-  const togglePanel = (
-    kind: NonNullable<Panel>["kind"],
-    id: string,
-    videoId?: string,
-  ) => {
+  const togglePanel = (kind: NonNullable<Panel>["kind"], id: string) => {
     setSubtitles(NO_SUBTITLES);
     setCaptionInfo(null);
     setPanel(isOpen(kind, id) ? null : { kind, id });
-    if (videoId && !isOpen(kind, id)) checkCaptions(videoId);
   };
 
-  async function checkCaptions(videoId: string) {
-    setCaptionInfo("Kontrol ediliyor…");
-    const captions = await fetchCaptions(videoId);
-    setCaptionInfo(
-      captions.length
-        ? `Bunny'de hazır altyazılar: ${captions.map((c) => `${c.label} (${c.srclang})`).join(", ")}`
-        : "Bunny'de henüz hazır altyazı yok.",
-    );
-  }
   const saved = (text: string) => {
     setPanel(null);
     setMessage(text);
@@ -119,7 +106,7 @@ export function ContentManager({ token, version, onChanged }: Props) {
         });
         setCaptionInfo(`Bunny'nin cevabı: ${reply}`);
       },
-      "Altyazı istendi. Bunny hazırlayınca (birkaç dakika) oynatıcıda görünür. 🔄 ile kontrol edebilirsin.",
+      "Altyazı istendi. Bunny hazırlayınca (birkaç dakika) oynatıcıda görünür. Altyazılar listesinde 🔄 ile kontrol edebilirsin.",
     );
   }
 
@@ -127,20 +114,10 @@ export function ContentManager({ token, version, onChanged }: Props) {
     return (
       <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
         {videoIds.length === 1 && (
-          <p className="flex items-center gap-2 text-sm text-white/80">
-            <button
-              type="button"
-              className="chip !px-2 !py-0.5 text-xs"
-              onClick={() => checkCaptions(videoIds[0])}
-            >
-              🔄
-            </button>
-            {captionInfo}
-          </p>
+          <CaptionEditor videoId={videoIds[0]} token={token} />
         )}
-        {videoIds.length > 1 && captionInfo && (
-          <p className="text-sm text-white/80">{captionInfo}</p>
-        )}
+        <p className="text-sm font-semibold">🤖 Yapay zekâ ile oluştur</p>
+        {captionInfo && <p className="text-sm text-white/80">{captionInfo}</p>}
         <SubtitlePicker value={subtitles} onChange={setSubtitles} />
         <div className="flex gap-2">
           <button
@@ -227,13 +204,7 @@ export function ContentManager({ token, version, onChanged }: Props) {
                 </button>
                 {title.kind === "film" && title.video_uid && (
                   <button
-                    onClick={() =>
-                      togglePanel(
-                        "subtitles",
-                        title.id,
-                        title.video_uid ?? undefined,
-                      )
-                    }
+                    onClick={() => togglePanel("subtitles", title.id)}
                     className="chip"
                   >
                     💬 Altyazı
@@ -309,9 +280,7 @@ export function ContentManager({ token, version, onChanged }: Props) {
                           ✏️
                         </button>
                         <button
-                          onClick={() =>
-                            togglePanel("subtitles", e.id, e.video_uid)
-                          }
+                          onClick={() => togglePanel("subtitles", e.id)}
                           className="chip !py-0.5 text-xs"
                         >
                           💬
