@@ -7,14 +7,21 @@ import { useSession } from './useSession';
 
 const SAVE_EVERY_SECONDS = 10;
 
+type Options = {
+  // Kayıtlı konuma atlamadan baştan başlat (yine de kaydeder)
+  restart?: boolean;
+  // false ise hiç okuma/yazma yapma (fragman gibi)
+  enabled?: boolean;
+};
+
 // Kaldığın yerden devam: konumu yükler ve izlerken kaydeder
-export function useWatchProgress(player: VideoPlayer, videoUid: string) {
+export function useWatchProgress(player: VideoPlayer, videoUid: string, { restart = false, enabled = true }: Options = {}) {
   const session = useSession();
-  const userId = session?.user.id;
+  const userId = enabled ? session?.user.id : undefined;
   const lastSaved = useRef(0);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || restart) return;
     supabase
       .from('watch_progress')
       .select('position_seconds')
@@ -26,7 +33,7 @@ export function useWatchProgress(player: VideoPlayer, videoUid: string) {
           player.currentTime = data.position_seconds;
         }
       });
-  }, [videoUid, userId, player]);
+  }, [videoUid, userId, player, restart]);
 
   function save(position: number) {
     if (!userId) return;

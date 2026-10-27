@@ -32,6 +32,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="title/[id]" options={{ title: '' }} />
         <Stack.Screen name="watch/[uid]" options={{ headerShown: false }} />
+        <Stack.Screen name="search" options={{ title: 'Ara' }} />
         <Stack.Screen name="login" options={{ title: 'Giriş', presentation: 'modal', headerRight: undefined }} />
       </Stack>
     </ThemeProvider>

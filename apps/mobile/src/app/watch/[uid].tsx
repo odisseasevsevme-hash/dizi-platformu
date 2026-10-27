@@ -10,20 +10,31 @@ import type { Episode } from '@/lib/types';
 import { loadWatchContext, type WatchContext } from '@/lib/watchContext';
 
 export default function WatchScreen() {
-  const { uid } = useLocalSearchParams<{ uid: string }>();
+  const { uid, restart, trailer } = useLocalSearchParams<{ uid: string; restart?: string; trailer?: string }>();
   const [context, setContext] = useState<WatchContext | null | undefined>(undefined);
 
   useEffect(() => {
-    loadWatchContext(uid).then(setContext);
-  }, [uid]);
+    if (!trailer) loadWatchContext(uid).then(setContext);
+  }, [uid, trailer]);
+
+  // Fragman: izleme kaydı tutmadan, tek başına oynat
+  if (trailer) {
+    return (
+      <View style={[styles.screen, styles.center]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <BackButton />
+        <Player videoUid={uid} trackProgress={false} style={styles.horizontalVideo} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.screen}>
       <Stack.Screen options={{ headerShown: false }} />
       {context === undefined ? null : context?.title.orientation === 'vertical' ? (
-        <VerticalFeed context={context} startUid={uid} />
+        <VerticalFeed context={context} startUid={uid} restart={!!restart} />
       ) : (
-        <HorizontalPlayer uid={uid} context={context} />
+        <HorizontalPlayer uid={uid} context={context} restart={!!restart} />
       )}
     </View>
   );
@@ -38,7 +49,12 @@ function BackButton() {
   );
 }
 
-function HorizontalPlayer({ uid, context }: { uid: string; context: WatchContext | null }) {
+function introOf(episode?: Pick<Episode, 'intro_start_seconds' | 'intro_end_seconds'> | null) {
+  if (episode?.intro_end_seconds == null) return null;
+  return { start: episode.intro_start_seconds ?? 0, end: episode.intro_end_seconds };
+}
+
+function HorizontalPlayer({ uid, context, restart }: { uid: string; context: WatchContext | null; restart: boolean }) {
   const index = context?.episodes.findIndex((e) => e.video_uid === uid) ?? -1;
   const current = index >= 0 ? context!.episodes[index] : null;
   const next = index >= 0 ? context!.episodes[index + 1] : undefined;
@@ -47,7 +63,14 @@ function HorizontalPlayer({ uid, context }: { uid: string; context: WatchContext
   return (
     <View style={styles.center}>
       <BackButton />
-      <Player key={uid} videoUid={uid} onEnded={goNext} style={styles.horizontalVideo} />
+      <Player
+        key={uid}
+        videoUid={uid}
+        onEnded={goNext}
+        restart={restart}
+        intro={introOf(current)}
+        style={styles.horizontalVideo}
+      />
       <View style={styles.info}>
         <Text style={styles.title}>{context?.title.name}</Text>
         {current && (
@@ -66,12 +89,13 @@ function HorizontalPlayer({ uid, context }: { uid: string; context: WatchContext
 }
 
 // Kısa video uygulamaları gibi: yukarı kaydırınca sonraki bölüm, bitince kendiliğinden geçer
-function VerticalFeed({ context, startUid }: { context: WatchContext; startUid: string }) {
+function VerticalFeed({ context, startUid, restart }: { context: WatchContext; startUid: string; restart: boolean }) {
   const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const episodes: Pick<Episode, 'video_uid' | 'number'>[] = context.episodes.length
-    ? context.episodes
-    : [{ video_uid: startUid, number: 1 }];
+  const episodes: Pick<Episode, 'video_uid' | 'number' | 'intro_start_seconds' | 'intro_end_seconds'>[] =
+    context.episodes.length
+      ? context.episodes
+      : [{ video_uid: startUid, number: 1, intro_start_seconds: null, intro_end_seconds: null }];
   const startIndex = Math.max(0, episodes.findIndex((e) => e.video_uid === startUid));
   const [active, setActive] = useState(startIndex);
   const list = useRef<FlatList>(null);
@@ -101,7 +125,14 @@ function VerticalFeed({ context, startUid }: { context: WatchContext; startUid: 
         renderItem={({ item, index }) => (
           <View style={{ height, width }}>
             {index === active ? (
-              <Player videoUid={item.video_uid} onEnded={() => goTo(index + 1)} style={{ flex: 1 }} contentFit="cover" />
+              <Player
+                videoUid={item.video_uid}
+                onEnded={() => goTo(index + 1)}
+                restart={restart && item.video_uid === startUid}
+                intro={introOf(item)}
+                style={{ flex: 1 }}
+                contentFit="cover"
+              />
             ) : (
               <Image source={thumbnailUrl(item.video_uid)} style={{ flex: 1 }} contentFit="cover" />
             )}
