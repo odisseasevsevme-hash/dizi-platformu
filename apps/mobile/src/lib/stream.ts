@@ -1,5 +1,7 @@
 // Bunny Stream adresleri (web ile aynı)
-const base = `https://${process.env.EXPO_PUBLIC_BUNNY_CDN_HOSTNAME}`;
+// "https://" ya da sondaki "/" ile girilmiş olsa da çalışsın
+const hostname = (process.env.EXPO_PUBLIC_BUNNY_CDN_HOSTNAME ?? '').replace(/^https?:\/\//, '').replace(/\/+$/, '');
+const base = `https://${hostname}`;
 
 export function hlsUrl(videoId: string) {
   return `${base}/${videoId}/playlist.m3u8`;

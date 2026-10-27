@@ -1,6 +1,8 @@
 // Bunny Stream adresleri. Ana bilgisayar adı Stream kütüphanesinin
 // API sayfasında "CDN Hostname" olarak görünür (ör. vz-xxxx.b-cdn.net).
-const base = `https://${process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME}`;
+// "https://" ya da sondaki "/" ile girilmiş olsa da çalışsın
+const hostname = (process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME ?? "").replace(/^https?:\/\//, "").replace(/\/+$/, "");
+const base = `https://${hostname}`;
 
 export function hlsUrl(videoId: string) {
   return `${base}/${videoId}/playlist.m3u8`;
