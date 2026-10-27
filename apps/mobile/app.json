@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "MoviTime",
-    "slug": "dizi-platformu",
+    "name": "odimovi",
+    "slug": "odimovi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "movitime",
+    "scheme": "odimovi",
     "userInterfaceStyle": "dark",
     "ios": {
       "icon": "./assets/expo.icon"

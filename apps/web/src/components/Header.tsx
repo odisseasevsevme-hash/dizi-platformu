@@ -32,7 +32,7 @@ export function Header() {
         <Link href="/" className="text-2xl font-black tracking-tight text-accent">
           {LOGO_SRC ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={LOGO_SRC} alt={BRAND_NAME} className="h-7" />
+            <img src={LOGO_SRC} alt={BRAND_NAME} className="h-6 sm:h-7" />
           ) : (
             BRAND_NAME
           )}

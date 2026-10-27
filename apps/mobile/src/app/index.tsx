@@ -5,7 +5,7 @@ import { Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, Text, Vi
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Row, TitleCard } from '@/components/Row';
-import { BRAND_NAME } from '@/lib/brand';
+import { BRAND_NAME, LOGO } from '@/lib/brand';
 import { firstVideo, landscapeImage, portraitImage } from '@/lib/catalog';
 import { colors } from '@/lib/colors';
 import { thumbnailUrl } from '@/lib/stream';
@@ -50,7 +50,7 @@ export default function Home() {
 
   const topBar = (
     <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-      <Text style={styles.brand}>{BRAND_NAME}</Text>
+      <Image source={LOGO} style={styles.logo} contentFit="contain" accessibilityLabel={BRAND_NAME} />
       {session ? (
         <Pressable onPress={() => supabase.auth.signOut()}>
           <Text style={styles.muted}>Çıkış</Text>
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 8,
   },
-  brand: { color: colors.accent, fontSize: 26, fontWeight: '900' },
+  logo: { width: 110, height: 24 },
   login: { color: '#fff', backgroundColor: colors.accent, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 4, fontWeight: '600' },
   muted: { color: colors.muted },
   heroShade: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.35)' },

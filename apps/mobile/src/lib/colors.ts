@@ -3,5 +3,5 @@ export const colors = {
   card: '#16161c',
   text: '#ededed',
   muted: '#9a9aa3',
-  accent: '#e50914',
+  accent: '#ec0166',
 };
